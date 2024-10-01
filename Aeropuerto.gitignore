@@ -1,0 +1,12 @@
+# Ignorar archivos de CLion y JetBrains
+.idea/
+cmake-build-debug/
+cmake-build-release/
+*.iml
+*.o
+*.obj
+*.so
+*.exe
+*.dll
+*.dylib
+.DS_Store
