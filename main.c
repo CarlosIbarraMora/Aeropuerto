@@ -7,13 +7,13 @@ typedef struct {
 
 typedef struct {
     int ocupada;  // Indica si la pista está ocupada (1) o libre (0)
-    Avion avion;  // Avión actualmente en la pista
+    Avion avion;
 } Pista;
 
-Avion cola[MAX_COLA];  // Cola de espera de aviones
-int frente = -1, final = -1;  // Indican los extremos de la cola
+Avion cola[MAX_COLA];
+int frente = -1, final = -1;
 
-Pista pistas[3];  // Las tres pistas del aeropuerto
+Pista pistas[3];
 
 void llegadaAvion(Avion avion);
 void liberarPista(int numeroPista);
@@ -30,7 +30,6 @@ int main() {
     llegadaAvion(avion3);
     llegadaAvion(avion4);
 
-    // Liberar dos pistas para mostrar cómo los aviones en cola se asignan a pistas
     liberarPista(2);
     liberarPista(1);
 
