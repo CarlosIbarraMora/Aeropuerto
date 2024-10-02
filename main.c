@@ -1,100 +1,93 @@
 #include <stdio.h>
-#include <stdlib.h>
+#define MAX_COLA 100
 
-#define NUM_PISTAS 3 // Cantidad de pistas disponibles
-#define MAX_COLA 10  // Tamaño máximo de la cola de espera
-
-typedef struct Aeronave {
+typedef struct {
     int id;
-} avion;
+} Avion;
 
-typedef struct Cola {
-    avion *aeronaves[MAX_COLA];
-    int front;
-    int rear;
-} Cola;
+typedef struct {
+    int ocupada;  // Indica si la pista está ocupada (1) o libre (0)
+    Avion avion;  // Avión actualmente en la pista
+} Pista;
 
-void inicializarCola(Cola *cola) {
-    cola->front = -1;
-    cola->rear = -1;
-}
+Avion cola[MAX_COLA];  // Cola de espera de aviones
+int frente = -1, final = -1;  // Indican los extremos de la cola
 
-int estaVacia(Cola *cola) {
-    return cola->front == -1;
-}
+Pista pistas[3];  // Las tres pistas del aeropuerto
 
-int estaLlena(Cola *cola) {
-    return (cola->rear + 1) % MAX_COLA == cola->front;
-}
-
-void enQueue(Cola *cola, avion *aeronave) {
-    if (estaLlena(cola)) {
-        printf("La cola de espera está llena.\n");
-        return;
-    }
-    if (estaVacia(cola)) {
-        cola->front = 0;
-    }
-    cola->rear = (cola->rear + 1) % MAX_COLA;
-    cola->aeronaves[cola->rear] = aeronave;
-    printf("Aeronave %d agregada a la cola de espera.\n", aeronave->id);
-}
-
-avion* deQueue(Cola *cola) {
-    if (estaVacia(cola)) {
-        printf("La cola de espera está vacía.\n");
-        return NULL;
-    }
-    avion *aeronave = cola->aeronaves[cola->front];
-    if (cola->front == cola->rear) {
-        cola->front = -1; // La cola está vacía
-        cola->rear = -1;
-    } else {
-        cola->front = (cola->front + 1) % MAX_COLA;
-    }
-    return aeronave;
-}
-
-void asignarPista(avion *aeronave, int *pistas, Cola *cola) {
-    for (int i = 0; i < NUM_PISTAS; i++) {
-        if (pistas[i] == -1) { // Pista libre
-            pistas[i] = aeronave->id;
-            printf("Aeronave %d asignada a la pista %d.\n", aeronave->id, i + 1);
-            return;
-        }
-    }
-    //Si no hay pistas se agregan al queue
-    enQueue(cola, aeronave);
-}
-
-void liberarPista(int pista, int *pistas, Cola *cola) {
-    printf("Liberando pista %d.\n", pista + 1);
-    pistas[pista] = -1; // Marcar la pista como libre
-    if (!estaVacia(cola)) {
-        avion *aeronave = deQueue(cola);
-        if (aeronave != NULL) {
-            pistas[pista] = aeronave->id; // Asignar la pista liberada
-            printf("Aeronave %d asignada a la pista %d desde la cola.\n", aeronave->id, pista + 1);
-        }
-    }
-}
+void llegadaAvion(Avion avion);
+void liberarPista(int numeroPista);
 
 int main() {
+    // Inicializar las tres pistas como libres
+    for (int i = 0; i < 3; i++) pistas[i].ocupada = 0;
 
-    int pistas[NUM_PISTAS] = {-1, -1, -1}; // Pistas vacías (-1 indica pista libre)
-    Cola cola;
-    inicializarCola(&cola);
+    // Crear cuatro aviones con diferentes IDs
+    Avion avion1 = {1}, avion2 = {2}, avion3 = {3}, avion4 = {4};
 
-    avion a1 = {1}, a2 = {2}, a3 = {3}, a4 = {4}, a5 = {5};
+    // Simular la llegada de los cuatro aviones
+    llegadaAvion(avion1);
+    llegadaAvion(avion2);
+    llegadaAvion(avion3);
+    llegadaAvion(avion4);
 
-    asignarPista(&a1, pistas, &cola); // Asignar avion 1
-    asignarPista(&a2, pistas, &cola); // Asignar avion 2
-    asignarPista(&a3, pistas, &cola); // Asignar avion 3
-    asignarPista(&a4, pistas, &cola); // El avión 4 va a entrar a la queue
-    asignarPista(&a5, pistas, &cola); // Se va al queue
-
-    liberarPista(1, pistas, &cola); // Liberar pista 2
-    liberarPista(0, pistas, &cola); // Liberar pista 1
+    // Liberar dos pistas para mostrar cómo los aviones en cola se asignan a pistas
+    liberarPista(2);
+    liberarPista(1);
 
     return 0;
+}
+
+void llegadaAvion(Avion avion) {
+    // Revisar si hay alguna pista libre
+    for (int i = 0; i < 3; i++) {
+        if (!pistas[i].ocupada) {
+            // Si la pista está libre, asignar el avión y marcar la pista como ocupada
+            pistas[i].ocupada = 1;
+            pistas[i].avion = avion;
+            printf("Avion %d asignado a la pista %d.\n", avion.id, i + 1);
+            return;  // Terminar la función porque el avión ya fue asignado
+        }
+    }
+
+    // Si no hay pistas libres, agregar el avión a la cola de espera
+    if ((final + 1) % MAX_COLA == frente) {
+        printf("La cola está llena, no se puede registrar el avion.\n");
+        return;
+    }
+
+    // Si la cola no está llena, añadir el avión a la cola
+    final = (final + 1) % MAX_COLA;
+    cola[final] = avion;
+    if (frente == -1) frente = 0;  // Si la cola estaba vacía, inicializar el frente
+    printf("No hay pistas disponibles. Avion %d en cola.\n", avion.id);
+}
+
+void liberarPista(int numeroPista) {
+    // Verificar si el número de pista es válido y está ocupada
+    if (numeroPista < 1 || numeroPista > 3 || !pistas[numeroPista - 1].ocupada) {
+        printf("Pista %d ya está libre o no es valida.\n", numeroPista);
+        return;
+    }
+
+    // Liberar la pista y mostrar qué avión la desocupó
+    printf("Pista %d liberada por el avion %d.\n", numeroPista, pistas[numeroPista - 1].avion.id);
+    pistas[numeroPista - 1].ocupada = 0;
+
+    // Revisar si hay aviones en la cola para asignarles la pista liberada
+    if (frente == -1) return;  // Si la cola está vacía, no hacer nada
+
+    // Asignar el primer avión de la cola a la pista liberada
+    pistas[numeroPista - 1].ocupada = 1;
+    pistas[numeroPista - 1].avion = cola[frente];
+    printf("Avion %d de la cola asignado a la pista %d.\n", cola[frente].id, numeroPista);
+
+    // Mover el frente de la cola (FIFO)
+    if (frente == final) {
+        // Si sólo había un avión en la cola, vaciar la cola
+        frente = final = -1;
+    } else {
+        // Si hay más aviones, mover el frente al siguiente avión
+        frente = (frente + 1) % MAX_COLA;
+    }
 }
