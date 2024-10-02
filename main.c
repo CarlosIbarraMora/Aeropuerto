@@ -1,87 +1,95 @@
 #include <stdio.h>
-#define MAX_COLA 100
+#include <stdlib.h>
+
+#define MAX_PISTAS 3
+#define MAX_COLA 5
 
 typedef struct {
     int id;
 } Avion;
 
 typedef struct {
-    int ocupada;  // Indica si la pista está ocupada (1) o libre (0)
-    Avion avion;
+    Avion *avion;  // Puntero a un avión
+    int ocupado;
 } Pista;
 
-Avion cola[MAX_COLA];
-int frente = -1, final = -1;
-
-Pista pistas[3];
-
-void llegadaAvion(Avion avion);
-void liberarPista(int numeroPista);
-
-int main() {
-   // Iniciar pistas
-    for (int i = 0; i < 3; i++) pistas[i].ocupada = 0;
-
-    // 4 aviones de ejemplo con ID sencillo
-    Avion avion1 = {1}, avion2 = {2}, avion3 = {3}, avion4 = {4};
-
-    llegadaAvion(avion1);
-    llegadaAvion(avion2);
-    llegadaAvion(avion3);
-    llegadaAvion(avion4);
-
-    liberarPista(2);
-    liberarPista(1);
-
-    return 0;
-}
-
-void llegadaAvion(Avion avion) {
-    // Revisar si hay alguna pista libre para asignarle un avión
-    for (int i = 0; i < 3; i++) {
-        if (!pistas[i].ocupada) {
-            pistas[i].ocupada = 1;
+void llegadaAvion(Avion *avion, Pista *pistas, Avion **cola, int *numAvionesCola) {
+    //Busca una pista libre
+    for (int i = 0; i < MAX_PISTAS; i++) {
+        if (!pistas[i].ocupado) {
             pistas[i].avion = avion;
-            printf("Avion %d asignado a la pista %d.\n", avion.id, i + 1);
+            pistas[i].ocupado = 1;
+            printf("Avion %d asignado a la pista %d.\n", avion->id, i + 1);
             return;
         }
     }
 
-    // Si no hay pistas libres, agregar el avión a la cola de espera
-    if ((final + 1) % MAX_COLA == frente) {
-        printf("La cola está llena, no se puede registrar el avion.\n");
-        return;
+    // Si no hay pista disponible, se va a la cola
+    if (*numAvionesCola < MAX_COLA) {
+        cola[*numAvionesCola] = avion;
+        (*numAvionesCola)++;
+        printf("Avion %d aniadido a la cola.\n", avion->id);
+    } else {
+        printf("Cola de espera llena. Avion %d no puede aterrizar.\n", avion->id);
     }
-
-    final = (final + 1) % MAX_COLA;
-    cola[final] = avion;
-    if (frente == -1) frente = 0;
-    printf("No hay pistas disponibles. Avion %d en cola.\n", avion.id);
 }
 
-void liberarPista(int numeroPista) {
-    // Verificar si el número de pista es válido y está ocupada
-    if (numeroPista < 1 || numeroPista > 3 || !pistas[numeroPista - 1].ocupada) {
-        printf("Pista %d ya está libre o no es valida.\n", numeroPista);
-        return;
+void liberarPista(Pista *pistas, Avion **cola, int *numAvionesCola) {
+    for (int i = 0; i < MAX_PISTAS; i++) {
+        if (pistas[i].ocupado) {
+            printf("Avion %d ha despegado de la pista %d.\n", pistas[i].avion->id, i + 1);
+            pistas[i].ocupado = 0;
+
+            // Si hay aviones en la cola, asignar el primero a la pista
+            if (*numAvionesCola > 0) {
+                pistas[i].avion = cola[0];
+                pistas[i].ocupado = 1;
+                printf("Avion %d asignado a la pista %d desde la cola.\n", cola[0]->id, i + 1);
+
+                // Mover la cola hacia adelante
+                for (int j = 1; j < *numAvionesCola; j++) {
+                    cola[j - 1] = cola[j];
+                }
+                (*numAvionesCola)--;
+            }
+        }
+    }
+}
+
+int main() {
+    Pista pistas[MAX_PISTAS] = {{NULL, 0}, {NULL, 0}, {NULL, 0}};
+    Avion *cola[MAX_COLA];
+    int numAvionesCola = 0;
+
+    int opcion, id = 1;
+
+    do {
+        printf("\n1. Llega un avion\n2. Liberar pista\n3. Salir\n");
+        printf("Seleccione una opcion: ");
+        scanf("%d", &opcion);
+
+        switch (opcion) {
+            case 1: {
+
+                Avion *nuevoAvion = (Avion *)malloc(sizeof(Avion));
+                nuevoAvion->id = id++;
+                llegadaAvion(nuevoAvion, pistas, cola, &numAvionesCola);
+                break;
+            }
+            case 2:
+                liberarPista(pistas, cola, &numAvionesCola);
+                break;
+            case 3:
+                printf("Saliendo...\n");
+                break;
+            default:
+                printf("Opcion invalida.\n");
+        }
+    } while (opcion != 3);
+
+    for (int i = 0; i < numAvionesCola; i++) {
+        free(cola[i]);
     }
 
-    printf("Pista %d liberada por el avion %d.\n", numeroPista, pistas[numeroPista - 1].avion.id);
-    pistas[numeroPista - 1].ocupada = 0;
-
-    if (frente == -1) {
-        printf("No hay aviones en cola para asignar a la pista %d.\n", numeroPista);
-        return;
-    }
-
-    // Asignar el primer avión de la cola a la pista liberada
-    pistas[numeroPista - 1].ocupada = 1;
-    pistas[numeroPista - 1].avion = cola[frente];
-    printf("Avion %d de la cola asignado a la pista %d.\n", cola[frente].id, numeroPista);
-
-    if (frente == final) {
-        frente = final = -1;
-    } else {
-        frente = (frente + 1) % MAX_COLA;
-    }
+    return 0;
 }
