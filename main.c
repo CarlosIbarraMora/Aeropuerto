@@ -78,6 +78,7 @@ int main() {
             }
             case 2:
                 liberarPista(pistas, cola, &numAvionesCola);
+
                 break;
             case 3:
                 printf("Saliendo...\n");
