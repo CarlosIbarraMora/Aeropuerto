@@ -9,7 +9,7 @@ typedef struct {
 } Avion;
 
 typedef struct {
-    Avion *avion;  // Puntero a un avión
+    Avion *avion;
     int ocupado;
 } Pista;
 
@@ -30,14 +30,14 @@ void llegadaAvion(Avion *avion, Pista *pistas, Avion **cola, int *numAvionesCola
         (*numAvionesCola)++;
         printf("Avion %d aniadido a la cola.\n", avion->id);
     } else {
-        printf("Cola de espera llena. Avion %d no puede aterrizar.\n", avion->id);
+        printf("Cola de espera llena. Avion %d busque otro aeropuerto.\n", avion->id);
     }
 }
 
 void liberarPista(Pista *pistas, Avion **cola, int *numAvionesCola) {
     for (int i = 0; i < MAX_PISTAS; i++) {
         if (pistas[i].ocupado) {
-            printf("Avion %d ha despegado de la pista %d.\n", pistas[i].avion->id, i + 1);
+            printf("Avion %d salió de la pista %d.\n", pistas[i].avion->id, i + 1);
             pistas[i].ocupado = 0;
 
             // Si hay aviones en la cola, asignar el primero a la pista
