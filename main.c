@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define MAX_PISTAS 3
-#define MAX_COLA 5
+#define MAX_COLA 10
 
 typedef struct {
     int id;
@@ -37,7 +37,7 @@ void llegadaAvion(Avion *avion, Pista *pistas, Avion **cola, int *numAvionesCola
 void liberarPista(Pista *pistas, Avion **cola, int *numAvionesCola) {
     for (int i = 0; i < MAX_PISTAS; i++) {
         if (pistas[i].ocupado) {
-            printf("Avion %d salió de la pista %d.\n", pistas[i].avion->id, i + 1);
+            printf("Avion %d salio de la pista %d.\n", pistas[i].avion->id, i + 1);
             pistas[i].ocupado = 0;
 
             // Si hay aviones en la cola, asignar el primero a la pista
